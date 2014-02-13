@@ -14,6 +14,10 @@ public class Board {
     private int spacesPerSide;
     private Set<Piece> pieces;
 
+    public Board() {
+        this(8);
+    }
+
     public Board(final int spacesPerSide) {
         this(spacesPerSide, initializePieces(spacesPerSide));
     }
@@ -37,6 +41,16 @@ public class Board {
 
     public void removePiece(final Piece piece) {
         pieces.remove(piece);
+    }
+
+    public Piece getPieceAtLocation(final Location location) {
+        for (Piece piece : pieces) {
+            if (piece.getLocation().equals(location)) {
+                return piece;
+            }
+        }
+
+        return null;
     }
 
     private static Set<Piece> initializePieces(final int spacesPerSide) {
