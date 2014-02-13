@@ -34,7 +34,7 @@ public class GameServiceLocalImpl implements GameService {
     @Override
     public Game newGame() {
         final String gameId = "game" + gameNum++;
-        final Game game = new Game(gameId, Team.RED);
+        final Game game = new Game(gameId, Team.BLACK);
 
         games.put(gameId, game);
 

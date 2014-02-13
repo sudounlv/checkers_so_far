@@ -1,8 +1,7 @@
 package edu.unlv.sudo.checkers.model;
 
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import edu.unlv.sudo.checkers.model.exception.InvalidMoveException;
 import edu.unlv.sudo.checkers.model.exception.OutOfTurnException;
@@ -17,7 +16,7 @@ public class Game {
     private Team turn;
 
     public Game(final String id, final Team turn) {
-        this(id, new Board(8), turn);
+        this(id, new Board(), turn);
     }
 
     public Game(final String id, final Board board, final Team turn) {
@@ -44,13 +43,15 @@ public class Game {
         }
 
         for (Location location : moves) {
-            if (!getValidMoves(piece).contains(location)) {
+            if (!Rules.getValidMoves(piece, board).contains(location)) {
                 throw new InvalidMoveException(piece, location);
             }
 
-            for (Piece jumped : board.getPieces()) {
+            final Iterator<Piece> iterator = board.getPieces().iterator();
+            while (iterator.hasNext()) {
+                final Piece jumped = iterator.next();
                 if (jumped.getLocation().isBetween(piece.getLocation(), location)) {
-                    board.removePiece(jumped);
+                    iterator.remove();
                 }
             }
 
@@ -66,72 +67,11 @@ public class Game {
                 }
             }
         }
-    }
 
-    public Set<Location> getValidMoves(final Piece piece) {
-        final Set<Location> validMoves = new HashSet<>();
-
-        int moveY = 0;
-        int jumpY = 0;
-
-        //check for single moves
-        if (piece.getTeam() == Team.RED) {
-            moveY = 1;
-            jumpY = 2;
-        } else if (piece.getTeam() == Team.BLACK) {
-            moveY = -1;
-            jumpY = -2;
+        if (turn == Team.RED) {
+            turn = Team.BLACK;
+        } else if (turn == Team.BLACK) {
+            turn = Team.RED;
         }
-
-        final int startX = piece.getLocation().getX();
-        final int startY = piece.getLocation().getY();
-
-        final Location moveNW = new Location(startX - 1, startY + moveY);
-        final Location moveNE = new Location(startX + 1, startY + moveY);
-        final Location moveSW = new Location(startX - 1, startY - moveY);
-        final Location moveSE = new Location(startX + 1, startY - moveY);
-
-        final Location jumpNW = new Location(startX - 2, startY + jumpY);
-        final Location jumpNE = new Location(startX + 2, startY + jumpY);
-        final Location jumpSW = new Location(startX - 2, startY - jumpY);
-        final Location jumpSE = new Location(startX + 2, startY - jumpY);
-
-        if (isSpaceOnBoard(moveNW) && board.getPieceAtLocation(moveNW) == null) {
-            validMoves.add(moveNW);
-        }
-        if (isSpaceOnBoard(moveNE) && board.getPieceAtLocation(moveNE) == null) {
-            validMoves.add(moveNE);
-        }
-        if (isSpaceOnBoard(moveSW) && board.getPieceAtLocation(moveSW) == null) {
-            validMoves.add(moveSW);
-        }
-        if (isSpaceOnBoard(moveSE) && board.getPieceAtLocation(moveSE) == null) {
-            validMoves.add(moveSE);
-        }
-
-        if (isSpaceOnBoard(jumpNW) && board.getPieceAtLocation(jumpNW) == null && board.getPieceAtLocation(moveNW) != null) {
-            validMoves.add(jumpNW);
-        }
-        if (isSpaceOnBoard(jumpNE) && board.getPieceAtLocation(jumpNE) == null && board.getPieceAtLocation(moveNE) != null) {
-            validMoves.add(jumpNE);
-        }
-        if (isSpaceOnBoard(jumpSW) && board.getPieceAtLocation(jumpSW) == null && board.getPieceAtLocation(moveSW) != null) {
-            validMoves.add(jumpSW);
-        }
-        if (isSpaceOnBoard(jumpSE) && board.getPieceAtLocation(jumpSE) == null && board.getPieceAtLocation(moveSE) != null) {
-            validMoves.add(jumpSE);
-        }
-
-        return validMoves;
-    }
-
-    public boolean isSpaceOnBoard(final Location location) {
-        return location.getX() >= 0 && location.getX() < board.getSpacesPerSide()
-                && location.getY() >= 0 && location.getY() < board.getSpacesPerSide();
-    }
-
-    public boolean isValidMove(final Piece piece, final List<Location> previousMoves, final Location move) {
-        final Piece theoreticalPiece = new Piece(piece.getTeam(), previousMoves.get(previousMoves.size() - 1));
-        return getValidMoves(theoreticalPiece).contains(move);
     }
 }

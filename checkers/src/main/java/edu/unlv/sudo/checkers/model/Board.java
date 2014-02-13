@@ -32,15 +32,11 @@ public class Board {
     }
 
     public Set<Piece> getPieces() {
-        return Collections.unmodifiableSet(pieces);
+        return pieces;
     }
 
     public int getSpacesPerSide() {
         return spacesPerSide;
-    }
-
-    public void removePiece(final Piece piece) {
-        pieces.remove(piece);
     }
 
     public Piece getPieceAtLocation(final Location location) {

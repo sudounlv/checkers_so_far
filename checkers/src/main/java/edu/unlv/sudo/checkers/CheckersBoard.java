@@ -1,8 +1,6 @@
 package edu.unlv.sudo.checkers;
 
-import android.graphics.Color;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,11 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import edu.unlv.sudo.checkers.model.Board;
 import edu.unlv.sudo.checkers.model.Game;
 import edu.unlv.sudo.checkers.service.GameService;
 import edu.unlv.sudo.checkers.service.impl.GameServiceLocalImpl;
@@ -22,45 +16,32 @@ import edu.unlv.sudo.checkers.views.BoardView;
 
 public class CheckersBoard extends ActionBarActivity {
 
-    //TODO: construct a much nicer view
-
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_checkers_board);
-//
-//        if (savedInstanceState == null) {
-//            getSupportFragmentManager().beginTransaction()
-//                    .add(R.id.container, new CheckersFragment())
-//                    .commit();
-//        }
-//    }
-
-    private BoardView boardView;
-    private Game game;
-    private GameService gameService;
+    private static BoardView boardView;
+    private static GameService gameService = new GameServiceLocalImpl();
+    private static Game game;
 
     public CheckersBoard() throws Exception {
-        gameService = new GameServiceLocalImpl();
-        this.game = gameService.newGame();
+        game = gameService.newGame();
+    }
+
+    //TODO: construct a much nicer view
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_checkers_board);
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.container, new CheckersFragment())
+                    .commit();
+        }
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        try {
-            boardView = new BoardView(this);
-            boardView.setBoard(new Board());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        boardView.setBackgroundColor(Color.WHITE);
-        setContentView(boardView);
-
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -94,6 +75,9 @@ public class CheckersBoard extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             final View rootView = inflater.inflate(R.layout.fragment_checkers_board, container, false);
+
+            boardView = (BoardView) rootView.findViewById(R.id.checkers_board);
+            boardView.setGame(game);
             return rootView;
         }
     }

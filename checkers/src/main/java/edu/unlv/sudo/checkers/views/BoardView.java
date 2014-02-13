@@ -13,8 +13,10 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import edu.unlv.sudo.checkers.model.Board;
+import edu.unlv.sudo.checkers.model.Game;
 import edu.unlv.sudo.checkers.model.Location;
 import edu.unlv.sudo.checkers.model.Piece;
+import edu.unlv.sudo.checkers.model.Rules;
 import edu.unlv.sudo.checkers.model.Team;
 
 /**
@@ -28,10 +30,15 @@ public class BoardView extends View {
     private static final int BOARD_COLOR_DARK = Color.DKGRAY;
     private static final int PIECE_COLOR_RED = Color.RED;
     private static final int PIECE_COLOR_BLACK = Color.BLACK;
+    private static final int PIECE_COLOR_KING = Color.WHITE;
+    private static final int SELECT_COLOR_PIECE = Color.GREEN;
+    private static final int SELECT_COLOR_SPACE = Color.YELLOW;
 
-    private Board board;
+    private Game game;
+    private int boardWidth;
 
-    private Canvas canvas;
+    private Piece selectedPiece;
+    private List<Location> moves;
 
     public BoardView(final Context context) {
         super(context);
@@ -43,28 +50,36 @@ public class BoardView extends View {
         setOnTouchListener(new CheckersOnTouchListener(this));
     }
 
-    public void setBoard(final Board board) {
-        this.board = board;
-
-        if (canvas != null) {
-            drawBoard(board, canvas);
-            drawPieces(board, canvas);
-        }
+    public void setGame(final Game game) {
+        this.game = game;
+        invalidate();
     }
 
-    public Board getBoard() {
-        return board;
+    public void setSelectedPiece(final Piece piece) {
+        this.selectedPiece = piece;
+        invalidate();
     }
 
-    public Canvas getCanvas() {
-        return canvas;
+    public void setMoves(final List<Location> moves) {
+        this.moves = moves;
+        invalidate();
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public int getBoardWidth() {
+        return boardWidth;
     }
 
     @Override
     protected void onDraw(final Canvas canvas) {
-        this.canvas = canvas;
-        drawBoard(board, canvas);
-        drawPieces(board, canvas);
+        this.boardWidth = Math.min(canvas.getWidth(), canvas.getHeight());
+        drawBoard(game.getBoard(), canvas);
+        drawSelectedPiece(selectedPiece, canvas);
+        drawSelectedMoves(moves, canvas);
+        drawPieces(game.getBoard(), canvas);
     }
 
     private void drawBoard(final Board board, final Canvas canvas) {
@@ -118,8 +133,69 @@ public class BoardView extends View {
             final float top = y * squareWidth + (squareWidth / 2);
 
             canvas.drawCircle(left, top, pieceRadius, paint);
+
+            if (piece.isKing()) {
+                paint.setColor(PIECE_COLOR_KING);
+                canvas.drawLine(left, top - pieceRadius, left, top + pieceRadius, paint);
+                canvas.drawLine(left - pieceRadius, top, left + pieceRadius, top, paint);
+            }
+        }
+    }
+
+    private void drawSelectedPiece(final Piece piece, final Canvas canvas) {
+        if (piece == null) {
+            return;
         }
 
+        if (game == null) {
+            LOGGER.warning("Attempting to render board with no game set.");
+            return;
+        }
+
+        final int boardWidth = Math.min(canvas.getHeight(), canvas.getWidth());
+        final float squareWidth = (float) boardWidth / game.getBoard().getSpacesPerSide();
+
+        final Paint paint = new Paint();
+        paint.setColor(SELECT_COLOR_PIECE);
+
+        final int x = piece.getLocation().getX();
+        final int y = piece.getLocation().getY();
+
+        final float left = x * squareWidth + 4;
+        final float right = (x + 1) * squareWidth - 5;
+        final float top = y * squareWidth + 4;
+        final float bottom = (y + 1) * squareWidth - 5;
+
+        canvas.drawRect(left, top, right, bottom, paint);
+    }
+
+    private void drawSelectedMoves(final List<Location> moves, final Canvas canvas) {
+        if (moves == null) {
+            return;
+        }
+
+        if (game == null) {
+            LOGGER.warning("Attempting to render board with no game set.");
+            return;
+        }
+
+        final int boardWidth = Math.min(canvas.getHeight(), canvas.getWidth());
+        final float squareWidth = (float) boardWidth / game.getBoard().getSpacesPerSide();
+
+        final Paint paint = new Paint();
+        paint.setColor(SELECT_COLOR_SPACE);
+
+        for (Location location : moves) {
+            final int x = location.getX();
+            final int y = location.getY();
+
+            final float left = x * squareWidth + 4;
+            final float right = (x + 1) * squareWidth - 5;
+            final float top = y * squareWidth + 4;
+            final float bottom = (y + 1) * squareWidth - 5;
+
+            canvas.drawRect(left, top, right, bottom, paint);
+        }
     }
 
     private class CheckersOnTouchListener implements OnTouchListener {
@@ -135,31 +211,39 @@ public class BoardView extends View {
 
         @Override
         public boolean onTouch(final View view, final MotionEvent motionEvent) {
-            final Canvas canvas = boardView.getCanvas();
-            final Board board = boardView.getBoard();
+            if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
+                return true;
+            }
+
+            final Game game = boardView.getGame();
+            final Board board = game.getBoard();
 
             final float x = motionEvent.getX();
             final float y = motionEvent.getY();
 
-            final int boardWidth = Math.min(canvas.getHeight(), canvas.getWidth());
+            final int boardWidth = boardView.getBoardWidth();
             final float squareWidth = (float) boardWidth / board.getSpacesPerSide();
 
             final Location location = new Location((int) Math.floor(x / squareWidth), (int) Math.floor(y / squareWidth));
             final Piece piece = board.getPieceAtLocation(location);
 
-            if (piece != null) {
+            //TODO: case where king piece comes around to it's original spot
+            if (piece != null && piece.getTeam() != game.getTurn()) {
+                return true;
+            } else if (piece != null) {
                 selectedPiece = piece;
                 moves = new ArrayList<>();
-            } else if (selectedPiece != null && isValidMove(selectedPiece, moves, location)) {
+            } else if (selectedPiece != null && moves.size() > 0 && moves.get(moves.size() - 1).equals(location)) {
+                game.move(selectedPiece, moves);
+                selectedPiece = null;
+                moves = new ArrayList<>();
+            } else if (selectedPiece != null && Rules.isValidMove(selectedPiece, moves, location, board)) {
                 moves.add(location);
             }
 
-            return true;
-        }
+            boardView.setSelectedPiece(selectedPiece);
+            boardView.setMoves(moves);
 
-        private boolean isValidMove(final Piece piece, final List<Location> previousMoves,
-                                    final Location move) {
-            //TODO: make this check for valid moves
             return true;
         }
     }
