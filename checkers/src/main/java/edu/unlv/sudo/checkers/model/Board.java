@@ -1,5 +1,8 @@
 package edu.unlv.sudo.checkers.model;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,7 +25,10 @@ public class Board {
         this(spacesPerSide, initializePieces(spacesPerSide));
     }
 
-    public Board(final int spacesPerSide, final Set<Piece> pieces) {
+    @JsonCreator
+    public Board(@JsonProperty("spacesPerSide") final int spacesPerSide,
+                 @JsonProperty("pieces") final Set<Piece> pieces) {
+
         if (this.spacesPerSide % 2 != 0) {
             throw new InvalidBoardException(spacesPerSide);
         }

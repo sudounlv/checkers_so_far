@@ -9,38 +9,51 @@ import edu.unlv.sudo.checkers.model.Team;
  */
 public interface GameService {
 
-    //TODO: this should probably be async
-
     /**
      * Issue a move on a game by presenting a new board object.
      * @param gameId the ID of the game in play
      * @param board the {@link Board} object representing the move made
-     * @return the game object accepted by the server
-     * @throws Exception if an error occurs during request
+     * @param listener the {@link Listener} to handle callbacks
      */
-    Game move(String gameId, Board board) throws Exception;
+    void move(String gameId, Board board, Listener listener);
 
     /**
      * Join a game already in progress on a specified team.
      * @param gameId the ID of the game to join
      * @param team the {@link Team} to join
-     * @return the game board
-     * @throws Exception if an error occurs during request
+     * @param listener the {@link Listener} to handle callbacks
      */
-    Game joinGame(String gameId, Team team) throws Exception;
+    void joinGame(String gameId, Team team, Listener listener);
 
     /**
      * Create a new game.
-     * @return the newly created game
-     * @throws Exception if an error occurs during request
+     * @param team the {@link Team} to join
+     * @param listener the {@link Listener} to handle callbacks
      */
-    Game newGame() throws Exception;
+    void newGame(Team team, Listener listener);
 
     /**
-     * Wait for the server to respond with a move by the opponent.
+     * Update a game from the server.
      * @param gameId the ID of the game in play
-     * @return the current server game
-     * @throws Exception if an error occurs during request
+     * @param listener the {@link Listener} to handle callbacks
      */
-    Game awaitMove(String gameId) throws Exception;
+    void update(String gameId, Listener listener);
+
+    /**
+     * A listener for games.
+     */
+    interface Listener {
+
+        /**
+         * Called when a game is available.
+         * @param game the {@link edu.unlv.sudo.checkers.model.Game} that became available
+         */
+        void onGame(Game game);
+
+        /**
+         * Called when an error occurs retrieving the game.
+         * @param exception the {@link Exception}
+         */
+        void onError(Exception exception);
+    }
 }

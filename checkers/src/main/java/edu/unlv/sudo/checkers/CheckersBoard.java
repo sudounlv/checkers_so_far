@@ -1,5 +1,8 @@
 package edu.unlv.sudo.checkers;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -9,22 +12,37 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+
 import edu.unlv.sudo.checkers.model.Game;
+import edu.unlv.sudo.checkers.model.Team;
 import edu.unlv.sudo.checkers.service.GameService;
-import edu.unlv.sudo.checkers.service.impl.GameServiceLocalImpl;
+import edu.unlv.sudo.checkers.service.impl.GameServiceRESTImpl;
 import edu.unlv.sudo.checkers.views.BoardView;
 
 public class CheckersBoard extends ActionBarActivity {
 
-    private static BoardView boardView;
-    private static GameService gameService = new GameServiceLocalImpl();
-    private static Game game;
+    private BoardView boardView;
+    private GameService gameService = new GameServiceRESTImpl();
+    private Game game;
 
-    public CheckersBoard() throws Exception {
-        game = gameService.newGame();
+    private static String deviceUid;
+    private static RequestQueue requestQueue;
+
+    /**
+     * @return the Device UID.
+     */
+    public static String getDeviceUid() {
+        return deviceUid;
     }
 
-    //TODO: construct a much nicer view
+    /**
+     * @return the {@link RequestQueue} for this activity.
+     */
+    public static RequestQueue getRequestQueue() {
+        return requestQueue;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,11 +54,31 @@ public class CheckersBoard extends ActionBarActivity {
                     .add(R.id.container, new CheckersFragment())
                     .commit();
         }
-    }
 
-    @Override
-    public void onAttachFragment(Fragment fragment) {
-        super.onAttachFragment(fragment);
+        deviceUid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        requestQueue = Volley.newRequestQueue(getApplicationContext());
+        requestQueue.start();
+
+        final Context context = this;
+
+        gameService.newGame(Team.RED, new GameService.Listener() {
+            @Override
+            public void onGame(Game g) {
+                game = g;
+                if (boardView != null) {
+                    boardView.setGame(game);
+                }
+            }
+
+            @Override
+            public void onError(Exception exception) {
+                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
+                alertBuilder.setTitle("Error");
+                alertBuilder.setMessage("Unable to create new game on server: " + exception.getMessage());
+                alertBuilder.show();
+            }
+        });
     }
 
     @Override
@@ -66,7 +104,7 @@ public class CheckersBoard extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class CheckersFragment extends Fragment {
+    public class CheckersFragment extends Fragment {
 
         public CheckersFragment() {
         }

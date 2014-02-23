@@ -1,5 +1,8 @@
 package edu.unlv.sudo.checkers.model;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,7 +22,11 @@ public class Game {
         this(id, new Board(), turn);
     }
 
-    public Game(final String id, final Board board, final Team turn) {
+    @JsonCreator
+    public Game(@JsonProperty("id") final String id,
+                @JsonProperty("board") final Board board,
+                @JsonProperty("turn") final Team turn) {
+
         this.id = id;
         this.board = board;
         this.turn = turn;

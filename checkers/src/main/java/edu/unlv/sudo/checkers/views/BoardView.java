@@ -76,6 +76,12 @@ public class BoardView extends View {
     @Override
     protected void onDraw(final Canvas canvas) {
         this.boardWidth = Math.min(canvas.getWidth(), canvas.getHeight());
+
+        if (game == null) {
+            LOGGER.warning("Attempting to render a null game.");
+            return;
+        }
+
         drawBoard(game.getBoard(), canvas);
         drawSelectedPiece(selectedPiece, canvas);
         drawSelectedMoves(moves, canvas);
@@ -213,6 +219,10 @@ public class BoardView extends View {
         public boolean onTouch(final View view, final MotionEvent motionEvent) {
             if (motionEvent.getAction() != MotionEvent.ACTION_DOWN) {
                 return true;
+            }
+
+            if (boardView.getGame() == null) {
+                return false;
             }
 
             final Game game = boardView.getGame();

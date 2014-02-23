@@ -19,30 +19,30 @@ public class GameServiceLocalImpl implements GameService {
     int gameNum = 0;
 
     @Override
-    public Game move(final String gameId, final Board board) {
+    public void move(final String gameId, final Board board, final Listener listener) {
         final Game game = games.get(gameId);
         final Team turn = game.getTurn() == Team.RED ? Team.BLACK : Team.RED;
 
-        return new Game(gameId, board, turn);
+        listener.onGame(new Game(gameId, board, turn));
     }
 
     @Override
-    public Game joinGame(final String gameId, final Team team) {
-        return games.get(gameId);
+    public void joinGame(final String gameId, final Team team, final Listener listener) {
+        listener.onGame(games.get(gameId));
     }
 
     @Override
-    public Game newGame() {
+    public void newGame(final Team team, final Listener listener) {
         final String gameId = "game" + gameNum++;
         final Game game = new Game(gameId, Team.BLACK);
 
         games.put(gameId, game);
 
-        return game;
+        listener.onGame(game);
     }
 
     @Override
-    public Game awaitMove(final String gameId) {
-        return games.get(gameId);
+    public void update(final String gameId, final Listener listener) {
+        listener.onGame(games.get(gameId));
     }
 }

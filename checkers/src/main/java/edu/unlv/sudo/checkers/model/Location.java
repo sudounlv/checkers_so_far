@@ -1,5 +1,8 @@
 package edu.unlv.sudo.checkers.model;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * Represents a location on the board.
  */
@@ -8,7 +11,9 @@ public class Location {
     private int x;
     private int y;
 
-    public Location(final int x, final int y) {
+    @JsonCreator
+    public Location(@JsonProperty("x") final int x,
+                    @JsonProperty("y") final int y) {
         this.x = x;
         this.y = y;
     }
