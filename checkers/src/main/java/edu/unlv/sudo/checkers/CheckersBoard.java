@@ -1,6 +1,5 @@
 package edu.unlv.sudo.checkers;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
@@ -16,15 +15,9 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
 import edu.unlv.sudo.checkers.model.Game;
-import edu.unlv.sudo.checkers.model.Team;
-import edu.unlv.sudo.checkers.service.GameService;
-import edu.unlv.sudo.checkers.service.impl.GameServiceRESTImpl;
-import edu.unlv.sudo.checkers.views.BoardView;
 
 public class CheckersBoard extends ActionBarActivity {
 
-    private BoardView boardView;
-    private GameService gameService = new GameServiceRESTImpl();
     private Game game;
 
     private static String deviceUid;
@@ -62,23 +55,7 @@ public class CheckersBoard extends ActionBarActivity {
 
         final Context context = this;
 
-        gameService.newGame(Team.RED, new GameService.Listener() {
-            @Override
-            public void onGame(Game g) {
-                game = g;
-                if (boardView != null) {
-                    boardView.setGame(game);
-                }
-            }
-
-            @Override
-            public void onError(Exception exception) {
-                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
-                alertBuilder.setTitle("Error");
-                alertBuilder.setMessage("Unable to create new game on server: " + exception.getMessage());
-                alertBuilder.show();
-            }
-        });
+        //TODO: call your service here!
     }
 
     @Override
@@ -114,8 +91,6 @@ public class CheckersBoard extends ActionBarActivity {
                 Bundle savedInstanceState) {
             final View rootView = inflater.inflate(R.layout.fragment_checkers_board, container, false);
 
-            boardView = (BoardView) rootView.findViewById(R.id.checkers_board);
-            boardView.setGame(game);
             return rootView;
         }
     }

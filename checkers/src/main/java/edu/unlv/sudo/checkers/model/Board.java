@@ -3,7 +3,6 @@ package edu.unlv.sudo.checkers.model;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
