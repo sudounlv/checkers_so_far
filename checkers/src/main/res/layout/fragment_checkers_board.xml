@@ -4,10 +4,4 @@
     android:layout_height="match_parent"
     tools:context="edu.unlv.sudo.checkers.CheckersBoard$PlaceholderFragment">
 
-    <TextView
-        android:id="@+id/checkers_turn"
-        android:text="@string/status_turn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
 </RelativeLayout>
