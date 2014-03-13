@@ -8,16 +8,20 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
-import edu.unlv.sudo.checkers.CheckersBoard;
+import edu.unlv.sudo.checkers.CheckersApplication;
 import edu.unlv.sudo.checkers.model.Game;
 import edu.unlv.sudo.checkers.model.Team;
 import edu.unlv.sudo.checkers.service.GameService;
+import edu.unlv.sudo.checkers.util.VolleySingleton;
 
 /**
  * This {@link GameService} talks to the checkers API.
  */
 public class GameServiceImpl implements GameService {
+
+    private static final Logger LOGGER = Logger.getLogger(GameServiceImpl.class.getName());
 
     private static final String BASE_URL = "http://23.253.42.115:2020/checkers/game/";
     private static final String CREATE_ENDPOINT = "create/";
@@ -26,20 +30,37 @@ public class GameServiceImpl implements GameService {
     private static final String URL_PARAM_DEVICE_ID = "deviceId";
     private static final String URL_PARAM_TEAM = "color";
 
+    private static GameService instance;
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * @return the instance of this service.
+     */
+    public static GameService getInstance() {
+        return instance == null ? instance = new GameServiceImpl() : instance;
+    }
+
+    /**
+     * Private constructor to prevent outside instantiation.
+     */
+    private GameServiceImpl() { }
+
     @Override
-    public void joinGame(String gameId, Team team, Listener listener) {
+    public void joinGame(final String gameId, final Team team, final Listener listener) {
+        LOGGER.fine("Joining game " + gameId + " with team " + team);
+
         final String url = BASE_URL + gameId + "/"
-                + JOIN_ENDPOINT + "/" + CheckersBoard.getDeviceUid();
+                + JOIN_ENDPOINT + "/" + CheckersApplication.getDeviceUid();
 
         issuePost(url, null, listener);
     }
 
     @Override
-    public void newGame(Team team, Listener listener) {
+    public void newGame(final Team team, final Listener listener) {
+        LOGGER.fine("Creating a new game with team " + team);
+
         final String url = BASE_URL + CREATE_ENDPOINT
-                + "?" + URL_PARAM_DEVICE_ID + "=" + CheckersBoard.getDeviceUid()
+                + "?" + URL_PARAM_DEVICE_ID + "=" + CheckersApplication.getDeviceUid()
                 + "&" + URL_PARAM_TEAM + "=" + team.name();
 
         issueGet(url, listener);
@@ -47,11 +68,14 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public void move(Game game, Listener listener) {
+        LOGGER.fine("Moving game " + game);
         //TODO: implement me!
     }
 
     @Override
     public void update(String gameId, Listener listener) {
+        LOGGER.fine("Requesting update for game " + gameId);
+
         final String url = BASE_URL + gameId;
 
         issueGet(url, listener);
@@ -94,7 +118,7 @@ public class GameServiceImpl implements GameService {
                 }
         );
 
-        CheckersBoard.getRequestQueue().add(request);
+        VolleySingleton.getInstance().getRequestQueue().add(request);
     }
 
     /**

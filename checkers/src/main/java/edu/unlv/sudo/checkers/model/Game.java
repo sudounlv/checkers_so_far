@@ -18,10 +18,6 @@ public class Game {
     private Board board;
     private Team turn;
 
-    public Game(final String id, final Team turn) {
-        this(id, new Board(), turn);
-    }
-
     @JsonCreator
     public Game(@JsonProperty("id") final String id,
                 @JsonProperty("board") final Board board,
@@ -44,4 +40,7 @@ public class Game {
         return id;
     }
 
+    public void clearTurn() {
+        this.turn = null;
+    }
 }

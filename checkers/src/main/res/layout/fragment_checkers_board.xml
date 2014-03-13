@@ -4,4 +4,6 @@
     android:layout_height="match_parent"
     tools:context="edu.unlv.sudo.checkers.CheckersBoard$PlaceholderFragment">
 
+    <!-- TODO: add the board view here -->
+
 </RelativeLayout>
